@@ -24,6 +24,7 @@
     <ProjectGuid>{ff6dd65d-23bb-457b-b81e-350a02222b4a}</ProjectGuid>
     <RootNamespace>vTIFF</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>VTIFF</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
