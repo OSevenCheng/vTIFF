@@ -1,11 +1,11 @@
-#include "IFD.h"
+#include "vIFD.h"
 #include "Utils.h"
 #include "CompressionLZW.h"
 #include <iostream>
 
-#include<ctime>
-clock_t start, end;
-IFD::IFD(byte* p_data, bool byteorder, int(*fun)(byte* ,int, int) ) :
+
+
+vIFD::vIFD(byte* p_data, bool byteorder, int(*fun)(byte* ,int, int) ) :
 	p_Data(p_data),
 	imageData(nullptr),
 	ByteOrder(byteorder),
@@ -17,7 +17,7 @@ IFD::IFD(byte* p_data, bool byteorder, int(*fun)(byte* ,int, int) ) :
 {
 
 }
-IFD::~IFD()
+vIFD::~vIFD()
 {
 	if (imageData != nullptr)
 	{
@@ -28,7 +28,7 @@ IFD::~IFD()
 		delete[] imageData;
 	}
 }
-int IFD::Decode(int Pos)
+int vIFD::Decode(int Pos)
 {
 	int n = Pos;
 	int DECount = pGetInt(p_Data, n, 2);
@@ -38,12 +38,14 @@ int IFD::Decode(int Pos)
 		DecodeDE(n);
 		n += 12;
 	}
+	/*也可以之后获取指定层的时候解码
 	//已获得每条扫描线位置，大小，压缩方式和数据类型，接下来进行解码
 	DecodeStrips();
+	*/
 	int pNext = pGetInt(p_Data, n, 4);
 	return pNext;
 }
-void IFD::DecodeDE(int Pos)
+void vIFD::DecodeDE(int Pos)
 {
 	int TagIndex = pGetInt(p_Data, Pos, 2);
 	int TypeIndex = pGetInt(p_Data, Pos + 2, 2);
@@ -59,7 +61,7 @@ void IFD::DecodeDE(int Pos)
 	//再根据Tag把值读出并存起来
 	GetDEValue(TagIndex, TypeIndex, Count, pData);
 }
-void IFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
+void vIFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 {
 	int typesize = TypeArray[TypeIndex];
 	switch (TagIndex)
@@ -105,15 +107,16 @@ void IFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 	default: break;
 	}
 }
-void IFD::DecodeStrips()
+void vIFD::DecodeStrips()
 {
 		int pStrip = 0;
 		int size = 0;
 		int byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;
 		imageData =new byte* [StripCount];
-		start = clock();
+		
 		if (Compression == 5)
 		{
+			Timer time("LZW Decode Time");
 			CompressionLZW* lzw = new CompressionLZW();
 			for (int i = 0; i < StripCount; i++)
 			{
@@ -124,33 +127,31 @@ void IFD::DecodeStrips()
 			}
 			delete lzw;
 		}
-		end = clock();
-		double endtime = (double)(end - start) / CLOCKS_PER_SEC;
-		std::cout << "Total time:" << endtime << std::endl;		//s为单位
+		
 }
-void IFD::PrintInfo()
+void vIFD::PrintInfo()
 {
-	std::cout << "ImageWidth: " << ImageWidth << std::endl;
-	std::cout << "ImageLength: " << ImageLength << std::endl;
+	/*std::cout << "ImageWidth: " << ImageWidth << std::endl;
+	std::cout << "ImageLength: " << ImageLength << std::endl;*/
 }
-int IFD::GetInt(int startPos, int Length)
+int vIFD::GetInt(int startPos, int Length)
 {
 	return pGetInt(p_Data, startPos, Length);
 }
-float IFD::GetRational(int startPos)
+float vIFD::GetRational(int startPos)
 {
 	int A = GetInt(startPos, 4);
 	int B = GetInt(startPos + 4, 4);
 	return A / B;
 }
-std::string IFD::GetString(int startPos, int Length)//II和MM对String没有影响
+std::string vIFD::GetString(int startPos, int Length)//II和MM对String没有影响
 {
 	std::string tmp = "";
 	for (int i = 0; i < Length; i++)
 		tmp += (char)p_Data[startPos];
 	return tmp;
 }
-void IFD::GetIntArray(int startPos,int typeSize,int count, std::vector<int>& arr)
+void vIFD::GetIntArray(int startPos,int typeSize,int count, std::vector<int>& arr)
 {
 	arr = std::vector<int>(count);
 	//arr.resize(count);
@@ -160,7 +161,7 @@ void IFD::GetIntArray(int startPos,int typeSize,int count, std::vector<int>& arr
 		arr[i] = v;
 	}
 }
-float IFD::GetFloat(byte* b, int startPos)
+float vIFD::GetFloat(byte* b, int startPos)
 {
 	byte* byteTemp;
 	if (ByteOrder)// "II")
@@ -170,7 +171,7 @@ float IFD::GetFloat(byte* b, int startPos)
 	
 	return *reinterpret_cast<float*>(byteTemp);
 }
-float* IFD::GetPixel(int x, int y)
+float* vIFD::GetPixel(int x, int y)
 {
 	byte* pStripY = imageData[y];
 	float R = GetFloat(pStripY, x * PixelBytes);
@@ -180,7 +181,7 @@ float* IFD::GetPixel(int x, int y)
 	float* color = new float[4]{ R,G,B,A };
 	return color;
 }
-byte* IFD::GetPixelByte(int x, int y)
+byte* vIFD::GetPixelByte(int x, int y)
 {
 	byte* pStripY = imageData[y];
 	byte R = pStripY[x];

@@ -15,30 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CompressionLZW.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="vIFD.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="vTIFF.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Utils.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="CompressionLZW.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="vIFD.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="vTIFF.cpp">
+    <ClCompile Include="testTIFF.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

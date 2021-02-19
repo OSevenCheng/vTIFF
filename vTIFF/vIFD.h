@@ -2,7 +2,7 @@
 #include "Utils.h"
 #include <string>
 #include <vector>
-class IFD
+class vIFD
 {
 	byte* p_Data;
 	byte** imageData;
@@ -55,12 +55,12 @@ class IFD
 	void GetIntArray(int startPos, int typeSize, int count, std::vector<int>& arr);
 
 	void DecodeDE(int n);
-	void DecodeStrips();
+	
 	void GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata);
 	int (*pGetInt)(byte* pd, int startPos, int Length);
 public:
-	IFD(byte* p_data, bool byteorder, int(*fun)(byte*, int, int));
-	~IFD();
+	vIFD(byte* p_data, bool byteorder, int(*fun)(byte*, int, int));
+	~vIFD();
 	int Decode(int p);
 	byte** GetImageData() {
 		return imageData;
@@ -68,6 +68,9 @@ public:
 	float* GetPixel(int x, int y);//每个通道占四个byte//32位float
 	byte* GetPixelByte(int x, int y);//每个通道占一个byte//8位
 	void PrintInfo();
-
+	void DecodeStrips();
+	int GetImageWidth() { return ImageWidth; }
+	int GetImageLength() { return ImageLength; }
+	int GetPass() { return BitsPerSample.size(); }
 };
 

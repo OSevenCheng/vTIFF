@@ -1,44 +1,34 @@
-#include "TIFF.h"
+#include "vTIFF.h"
 #include "Utils.h"
 #include <fstream>
 #include <iostream>
 using namespace std;
 
-
-int GetIntII(byte* pd, int startPos, int Length)
-{
-    int value = 0;
-    for (int i = 0; i < Length; i++)
-        value |= pd[startPos + i] << i * 8;
-    return value;
-}
-
-int GetIntMM(byte* pd, int startPos, int Length)
-{
-    int value = 0;
-    int st = startPos + Length - 1;
-    for (int i = 0; i < Length; i++)
-        value |= pd[st - i] << i * 8;
-    return value;
-}
-void TIFF::Init(string path)
+void vTIFF::Load(string path)
 {
     pGetInt[1] = GetIntII;
     pGetInt[0] = GetIntMM;
 
-	ReadFile(path);
+    ReadFile(path);
     int pIFD = DecodeIFH();
     while (pIFD != 0)
     {
-		IFD* p_ifd = new IFD(p_data,ByteOrder, pGetInt[ByteOrder]);
+		vIFD* p_ifd = new vIFD(p_data,ByteOrder, pGetInt[ByteOrder]);
         pIFD = p_ifd->Decode(pIFD);
-        p_ifd->PrintInfo();
+        //p_ifd->PrintInfo();
         p_IFDs.push_back(p_ifd);
     }
-
-    delete p_data;
 }
-int TIFF::DecodeIFH() 
+void vTIFF::Unload()//只是把原始数据释放//不再需要解码数据（GetLayer）后即可释放掉了
+{
+    if (p_data != nullptr)
+    {
+        delete p_data;
+        p_data = nullptr;
+    }
+        
+}
+int vTIFF::DecodeIFH()
 {
     //string byteOrder = p_data[0];// +"" + (char)p_data[1];
     if (p_data[0] == 'I')
@@ -50,12 +40,12 @@ int TIFF::DecodeIFH()
     int Version = pGetInt[ByteOrder](p_data,2,2);
 
     if (Version != 42)
-        cout << "Not TIFF."<<endl;
+        cout << "Not vTIFF."<<endl;
 
     return pGetInt[ByteOrder](p_data, 4, 4);
 }
 
-void TIFF::ReadFile(std::string path)
+void vTIFF::ReadFile(std::string path)
 {
 	ifstream f;   // 读取图像
 	f.open(path, ios::in | ios::binary);
@@ -71,11 +61,12 @@ void TIFF::ReadFile(std::string path)
 	f.close();
 }
 
-byte** TIFF::GetLayer(int i=0)
+byte** vTIFF::GetLayer(int i=0)
 {
+    p_IFDs[i]->DecodeStrips();
     return p_IFDs[i]->GetImageData();
 }
-float* TIFF::GetPixel(int x, int y, int layer)
+float* vTIFF::GetPixel(int x, int y, int layer)
 {
     return p_IFDs[layer]->GetPixel(x, y);
 }

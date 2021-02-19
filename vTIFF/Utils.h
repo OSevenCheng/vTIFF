@@ -2,6 +2,37 @@
 //typedef byte uchar;
 
 #include <Map>
+#include<ctime>
+#include<string>
+#include <iostream>
+class Timer
+{
+    clock_t startT;
+    std::string label;
+    bool isEnd;
+public:
+    Timer(std::string name = "Time")//创建时开始计时
+    {
+        startT = clock(); 
+        label = name;
+        isEnd = false;
+    }
+    ~Timer()//自动结束计时
+    {
+        if (!isEnd)
+        {
+            double endtime = (double)(clock() - startT) / CLOCKS_PER_SEC;
+            std::cout<<label<<": "<< endtime << std::endl;		//s为单位
+        }
+    }
+    void End()//手动结束
+    {
+        clock_t endT = clock();
+        double endtime = (double)(clock() - startT) / CLOCKS_PER_SEC;
+        std::cout << label << ": " << endtime << std::endl;		//s为单位
+        isEnd = true;
+    }
+};
 #define byte unsigned char
 class OColor
 {
@@ -27,3 +58,7 @@ const int TypeArray[] = {//"???",
                 4,//    float",4),//Single precision (4-byte) IEEE format
                 8//    double",8)//Double precision (8-byte) IEEE format
 };
+
+int GetIntII(byte* pd, int startPos, int Length);
+
+int GetIntMM(byte* pd, int startPos, int Length);
