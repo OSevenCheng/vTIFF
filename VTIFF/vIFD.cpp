@@ -113,8 +113,17 @@ void vIFD::DecodeStrips()
 		int size = 0;
 		byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;
 		imageData =new byte[StripCount* byteCountPerStripe];
-		
-		if (Compression == 5)
+		if (Compression == 1)//No compression
+		{
+			for (int i = 0; i < StripCount; i++)
+			{
+				pStrip = StripOffsets[i];
+				size = StripByteCounts[i];
+				imageData[i * byteCountPerStripe] = p_Data[pStrip];
+				memcpy(&imageData[i * byteCountPerStripe], &p_Data[pStrip], size);
+			}
+		}
+		if (Compression == 5)//LZW compression
 		{
 			Timer time("LZW Decode Time");
 			CompressionLZW* lzw = new CompressionLZW();

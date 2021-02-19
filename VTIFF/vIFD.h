@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <string>
 #include <vector>
+enum vFormat;
 class vIFD
 {
 	byte* p_Data;
@@ -73,5 +74,27 @@ public:
 	int GetImageWidth() { return ImageWidth; }
 	int GetImageLength() { return ImageLength; }
 	int GetPass() { return BitsPerSample.size(); }
+	vFormat GetFormat() { return (vFormat)SampleFormat[0]; }
 };
 
+enum vFormat
+{
+	//Unsigned Int
+	VT_UINT = 1,
+
+	//Unsigned Int
+	VT_INT,
+
+	//Float
+	VT_FLOAT,// array of float			: 32-bit IEEE floating point
+
+	VT_UNDEFINED
+};
+//Byte
+//VT_BITMAP,// standard image			: 1-, 4-, 8-, 16-, 24-, 32-bit, unsigned byte
+//Õæ²ÊÉ«
+//VT_RGB16, // 48-bit RGB image			: 3 x 16-bit
+//VT_RGBA16,// 64-bit RGBA image		: 4 x 16-bit
+
+//VT_RGBF,// 96-bit RGB float image	    : 3 x 32-bit IEEE floating point
+//VT_RGBAF// 128-bit RGBA float image	: 4 x 32-bit IEEE floating point

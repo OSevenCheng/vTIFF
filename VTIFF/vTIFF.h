@@ -47,7 +47,7 @@ public:
 	}
 	int Format()
 	{
-		return 0;
+		return p_IFDs.empty() ? 0 : p_IFDs[0]->GetFormat();
 	}
 private:
 	
