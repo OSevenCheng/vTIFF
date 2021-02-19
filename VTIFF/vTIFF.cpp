@@ -61,7 +61,7 @@ void vTIFF::ReadFile(std::string path)
 	f.close();
 }
 
-byte** vTIFF::GetLayer(int i=0)
+byte* vTIFF::GetLayer(int i=0)
 {
     p_IFDs[i]->DecodeStrips();
     return p_IFDs[i]->GetImageData();

@@ -31,7 +31,7 @@ public:
 	}
 	void Load(std::string path);
 	void Unload();
-	byte** GetLayer(int i);
+	byte* GetLayer(int i);
 	float* GetPixel(int x, int y, int layer=0);
 	int Width() {
 		return p_IFDs.empty()?0:p_IFDs[0]->GetImageWidth();

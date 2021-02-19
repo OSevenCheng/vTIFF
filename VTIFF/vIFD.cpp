@@ -21,10 +21,10 @@ vIFD::~vIFD()
 {
 	if (imageData != nullptr)
 	{
-		for (int i = 1; i < StripCount; i++)
+		/*for (int i = 1; i < StripCount; i++)
 		{
 			delete[] imageData[i];
-		}
+		}*/
 		delete[] imageData;
 	}
 }
@@ -111,8 +111,8 @@ void vIFD::DecodeStrips()
 {
 		int pStrip = 0;
 		int size = 0;
-		int byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;
-		imageData =new byte* [StripCount];
+		byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;
+		imageData =new byte[StripCount* byteCountPerStripe];
 		
 		if (Compression == 5)
 		{
@@ -122,8 +122,8 @@ void vIFD::DecodeStrips()
 			{
 				pStrip = StripOffsets[i];
 				size = StripByteCounts[i];
-				imageData[i] = new byte[byteCountPerStripe];
-				lzw->Decode(p_Data,pStrip,size, imageData[i]);
+				//imageData[i] = new byte[byteCountPerStripe];
+				lzw->Decode(p_Data,pStrip,size, &imageData[i*byteCountPerStripe]);
 			}
 			delete lzw;
 		}
@@ -173,7 +173,7 @@ float vIFD::GetFloat(byte* b, int startPos)
 }
 float* vIFD::GetPixel(int x, int y)
 {
-	byte* pStripY = imageData[y];
+	byte* pStripY = &imageData[y *byteCountPerStripe];
 	float R = GetFloat(pStripY, x * PixelBytes);
 	float G = GetFloat(pStripY, x * PixelBytes+4);
 	float B = GetFloat(pStripY, x * PixelBytes+8);
@@ -183,7 +183,7 @@ float* vIFD::GetPixel(int x, int y)
 }
 byte* vIFD::GetPixelByte(int x, int y)
 {
-	byte* pStripY = imageData[y];
+	byte* pStripY = &imageData[y* byteCountPerStripe];
 	byte R = pStripY[x];
 	byte G = pStripY[x + 1];
 	byte B = pStripY[x + 2];

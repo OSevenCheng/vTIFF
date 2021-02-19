@@ -5,7 +5,7 @@
 class vIFD
 {
 	byte* p_Data;
-	byte** imageData;
+	byte* imageData;
 	int ByteOrder;
 	int ImageWidth = 0;
 	int ImageLength = 0;
@@ -47,6 +47,7 @@ class vIFD
 	std::string Software = "";
 
 	int StripCount;
+	int byteCountPerStripe;
 
 	int GetInt(int startPos, int Length);
 	float GetRational(int startPos);
@@ -62,7 +63,7 @@ public:
 	vIFD(byte* p_data, bool byteorder, int(*fun)(byte*, int, int));
 	~vIFD();
 	int Decode(int p);
-	byte** GetImageData() {
+	byte* GetImageData() {
 		return imageData;
 	}
 	float* GetPixel(int x, int y);//每个通道占四个byte//32位float
