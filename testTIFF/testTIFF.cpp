@@ -13,7 +13,7 @@ int main()
 	Timer time("Total time");
 
 	vTIFF* tiff = new vTIFF();
-	tiff->Load("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
+	tiff->Load("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\screenshot.tiff");
 
 	//vTIFF* tiff = new vTIFF("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
 	
@@ -35,8 +35,9 @@ int main()
 	//获取某一层的某个像素的数据。
 	//for (int x = 0; x < 1440; x++)
 	//{
-	float* color = tiff->GetPixel(720, 360);
-	cout << color[0] << "	" << color[1] << "	" << color[2] << "	" << color[3] << endl;
+	float* color = tiff->GetPixel(1, 123);
+	cout << color[0]*255 << "	" << color[1] * 255 << "	" << color[2] * 255 << endl;
+	//cout << color[0] << "	" << color[1] << "	" << color[2] << "	" << color[3] << endl;
 	//}
 
 	delete tiff;

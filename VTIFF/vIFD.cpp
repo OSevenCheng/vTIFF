@@ -103,7 +103,7 @@ void vIFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 	case 320: break;//ColorDistributionTable
 	case 338: break;//ExtraSamples
 	case 339: //SampleFormat
-		GetIntArray(pdata,typesize,Count, SampleFormat); break;
+		GetIntArray(pdata,typesize,Count, SampleFormat); break;//默认为无符号整型
 	default: break;
 	}
 }
@@ -182,12 +182,24 @@ float vIFD::GetFloat(byte* b, int startPos)
 }
 float* vIFD::GetPixel(int x, int y)
 {
-	byte* pStripY = &imageData[y *byteCountPerStripe];
-	float R = GetFloat(pStripY, x * PixelBytes);
-	float G = GetFloat(pStripY, x * PixelBytes+4);
-	float B = GetFloat(pStripY, x * PixelBytes+8);
-	float A = GetFloat(pStripY, x * PixelBytes+12);
-	float* color = new float[4]{ R,G,B,A };
+	float* color =nullptr;
+	if (GetFormat() == vFormat::VT_FLOAT && GetPass() == 4)
+	{
+		byte* pStripY = &imageData[y *byteCountPerStripe];
+		float R = GetFloat(pStripY, x * PixelBytes);
+		float G = GetFloat(pStripY, x * PixelBytes+4);
+		float B = GetFloat(pStripY, x * PixelBytes+8);
+		float A = GetFloat(pStripY, x * PixelBytes+12);
+		color = new float[4]{ R,G,B,A };
+	}
+	else if (GetFormat() == vFormat::VT_UNSIGNED_BYTE && GetPass() == 3)
+	{
+		byte* pStripY = &imageData[y * byteCountPerStripe];
+		float R = (float)pGetInt(pStripY, x * PixelBytes, 1) / 255.0;
+		float G = (float)pGetInt(pStripY, x * PixelBytes + 1, 1) / 255.0;
+		float B = (float)pGetInt(pStripY, x * PixelBytes + 2, 1) / 255.0;
+		color = new float[3]{ R,G,B };
+	}
 	return color;
 }
 byte* vIFD::GetPixelByte(int x, int y)
@@ -199,4 +211,62 @@ byte* vIFD::GetPixelByte(int x, int y)
 	byte A = pStripY[x + 3];
 	byte* color = new byte[4]{ R,G,B,A };
 	return color;
+}
+
+vFormat vIFD::GetFormat()
+{
+	/*int f = SampleFormat.size() == 0 ? VT_UNSIGNED_BYTE : (SampleFormat[0]*3-2);
+	int f2 = BitsPerSample[0] == 8
+	if(BitsPerSample[0] == 8)
+		return vFormat::*/
+	int f = SampleFormat.size() == 0 ? 1 : SampleFormat[0];
+	int b = BitsPerSample[0];
+	vFormat format = VT_UNDEFINED;
+	if (f == 1)
+	{
+		if (b == 8)//无符号整型
+		{
+			format = VT_UNSIGNED_BYTE;
+		}
+		else if (b == 16)
+		{
+			format = VT_UNSIGNED_SHORT;//16-bits
+		}
+		else if (b == 32)
+		{
+			format = VT_UNSIGNED_INT;//32-bits
+		}
+	}
+	else if (f == 2)//有符号整型
+	{
+		if (b == 8)
+		{
+			format = VT_BYTE;
+		}
+		else if (b == 16)
+		{
+			format = VT_SHORT;
+		}
+		else if (b == 32)
+		{
+			format = VT_INTE;
+		}
+	}
+	else if (f == 3)
+	{
+		if (b == 16)
+		{
+			format = VT_HALF_FLOAT;
+		}
+		else if (b == 32)
+		{
+			format = VT_FLOAT; //32-bits
+		}
+		else if (b == 64)
+		{
+			format = VT_DOUBLE;//64-bits
+		}
+	}
+
+	return format;
 }

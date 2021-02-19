@@ -9,7 +9,10 @@ void vTIFF::Load(string path)
     pGetInt[1] = GetIntII;
     pGetInt[0] = GetIntMM;
 
-    ReadFile(path);
+    if (!ReadFile(path))
+    {
+        return;
+    }
     int pIFD = DecodeIFH();
     while (pIFD != 0)
     {
@@ -45,20 +48,26 @@ int vTIFF::DecodeIFH()
     return pGetInt[ByteOrder](p_data, 4, 4);
 }
 
-void vTIFF::ReadFile(std::string path)
+bool vTIFF::ReadFile(std::string path)
 {
 	ifstream f;   // 读取图像
 	f.open(path, ios::in | ios::binary);
 
 	f.seekg(0, ios::end);   // 将文件指针移动到文件末尾
 	int length = f.tellg();   // 返回文件指针的位置
-	cout << "图像数据总字节数：" << length << endl;
+    if (length == -1)
+    {
+        cout << "文件路径错误！" << length << endl;
+        return false;
+    }
+	
 	f.seekg(0, ios::beg);
 	//根据图像数据长度分配内存buffer
     p_data = new byte[length];
 	f.read((char*)p_data, length);
 
 	f.close();
+    return true;
 }
 
 byte* vTIFF::GetLayer(int i=0)

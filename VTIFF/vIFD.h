@@ -74,19 +74,23 @@ public:
 	int GetImageWidth() { return ImageWidth; }
 	int GetImageLength() { return ImageLength; }
 	int GetPass() { return BitsPerSample.size(); }
-	vFormat GetFormat() { return (vFormat)SampleFormat[0]; }
+	vFormat GetFormat();
 };
 
 enum vFormat
 {
-	//Unsigned Int
-	VT_UINT = 1,
+	VT_UNSIGNED_BYTE = 1,//8-bits
+	VT_UNSIGNED_SHORT,//16-bits
+	VT_UNSIGNED_INT,//32-bits
 
-	//Unsigned Int
-	VT_INT,
+	VT_BYTE=4,  
+	VT_SHORT,
+	VT_INTE,
+	
+	VT_HALF_FLOAT=7,
+	VT_FLOAT,//32-bits
+	VT_DOUBLE,//64-bits
 
-	//Float
-	VT_FLOAT,// array of float			: 32-bit IEEE floating point
 
 	VT_UNDEFINED
 };

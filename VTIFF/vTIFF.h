@@ -45,13 +45,13 @@ public:
 	int Pass() { 
 		return p_IFDs.empty() ? 0 : p_IFDs[0]->GetPass();
 	}
-	int Format()
+	vFormat Format()
 	{
-		return p_IFDs.empty() ? 0 : p_IFDs[0]->GetFormat();
+		return p_IFDs.empty() ? vFormat::VT_UNDEFINED : p_IFDs[0]->GetFormat();
 	}
 private:
 	
-	void ReadFile(std::string path);
+	bool ReadFile(std::string path);
 	int DecodeIFH();
 	
 	//friend vIFD;
