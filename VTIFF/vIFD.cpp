@@ -107,11 +107,29 @@ void vIFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 	default: break;
 	}
 }
+template<class T>
+void DealPredictor(byte* _data, int _width, int _length, int channel)
+{
+	T* sData = reinterpret_cast<T*>(_data);
+	for (int j = 0; j < _length; j++)
+	{
+		int before = j * _width * 3;
+		for (int ch = 0; ch < channel; ch++)
+		{
+			char last = 0;
+			for (int i = before + ch; i < before + ch + _width * 3; i += 3)
+			{
+				sData[i] += last;
+				last = sData[i];
+			}
+		}
+	}
+}
 void vIFD::DecodeStrips()
 {
 		int pStrip = 0;
 		int size = 0;
-		byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;
+		byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;//解码后的宽度
 		imageData =new byte[StripCount* byteCountPerStripe];
 		if (Compression == 1)//No compression
 		{
@@ -123,9 +141,9 @@ void vIFD::DecodeStrips()
 				memcpy(&imageData[i * byteCountPerStripe], &p_Data[pStrip], size);
 			}
 		}
-		if (Compression == 5)//LZW compression
+		else if (Compression == 5)//LZW compression
 		{
-			Timer time("LZW Decode Time");
+			//Timer time("LZW Decode Time");
 			CompressionLZW* lzw = new CompressionLZW();
 			for (int i = 0; i < StripCount; i++)
 			{
@@ -133,11 +151,29 @@ void vIFD::DecodeStrips()
 				size = StripByteCounts[i];
 				//imageData[i] = new byte[byteCountPerStripe];
 				lzw->Decode(p_Data,pStrip,size, &imageData[i*byteCountPerStripe]);
+				
 			}
 			delete lzw;
+
+			if (Predictor == 2)
+			{
+				if (BitsPerSample[0] == 8)//unsigned byte
+				{
+					DealPredictor<char>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
+				}
+				else if (BitsPerSample[0] == 16)//unsigned short
+				{
+					DealPredictor<short>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
+				}
+				else if (BitsPerSample[0] == 32)//unsigned int
+				{
+					DealPredictor<int>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
+				}
+			}
 		}
 		
 }
+
 void vIFD::PrintInfo()
 {
 	/*std::cout << "ImageWidth: " << ImageWidth << std::endl;
