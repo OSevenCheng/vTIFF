@@ -12,6 +12,8 @@ class vIFD
 	int ImageLength = 0;
 
 	std::vector<int> BitsPerSample;
+	int BytesPerSample =0;
+	int ChannelCount = 0;
 	int PixelBytes = 0;
 	int Compression = 0;
 
@@ -67,14 +69,22 @@ public:
 	byte* GetImageData() {
 		return imageData;
 	}
-	float* GetPixel(int x, int y);//每个通道占四个byte//32位float
+	void* GetPixel(int x, int y);//每个通道占四个byte//32位float
 	byte* GetPixelByte(int x, int y);//每个通道占一个byte//8位
 	void PrintInfo();
-	void DecodeStrips();
+	
 	int GetImageWidth() { return ImageWidth; }
 	int GetImageLength() { return ImageLength; }
 	int GetPass() { return BitsPerSample.size(); }
 	vFormat GetFormat();
+
+	void DecodeImage();
+private:
+	template<class T>
+	void DecodeStrips();
+
+	template<class T>
+	void DealPredictor();
 };
 
 enum vFormat

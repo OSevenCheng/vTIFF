@@ -12,8 +12,65 @@ CompressionLZW::CompressionLZW() : current(0), bitsCount(0)
 		used[dicIndex++] = true;
 	}
 	dicIndex = 258;
-}
+	
+	IsEnd[0] = &CompressionLZW::NotEnd;
+	IsEnd[1] = &CompressionLZW::End;
 
+	CodeInDic[0] = &CompressionLZW::NotInDic;
+	CodeInDic[1] = &CompressionLZW::InDic;
+}
+void CompressionLZW::NotInDic(int& code, int& oldCode)
+{
+	dict[dicIndex] = dict[oldCode];
+	dict[dicIndex].push_back(dict[oldCode][0]);
+	used[dicIndex] = true;
+	WriteResult(dict[dicIndex]);
+	dicIndex++;
+	oldCode = code;
+}
+void CompressionLZW::InDic(int& code, int& oldCode)
+{
+	WriteResult(dict[code]);
+	dict[dicIndex] = dict[oldCode];
+	dict[dicIndex].push_back(dict[code][0]);
+	used[dicIndex] = true;
+	dicIndex++;
+	oldCode = code;
+}
+bool CompressionLZW::End(int& code, int& oldCode)
+{
+	InitializeTable();
+	code = GetNextCode();
+	/*if (code == EoiCode)
+	{
+		return false;
+	}*/
+	WriteResult(dict[code]);
+	return true;
+}
+bool CompressionLZW::NotEnd(int& code,int& oldCode)
+{
+	(this->*CodeInDic[IsInDic(code)])(code, oldCode);
+	/*if (IsInDic(code))
+	{
+		WriteResult(dict[code]);
+		dict[dicIndex] = dict[oldCode];
+		dict[dicIndex].push_back(dict[code][0]);
+		used[dicIndex] = true;
+		dicIndex++;
+		oldCode = code;
+	}
+	else
+	{
+		dict[dicIndex] = dict[oldCode];
+		dict[dicIndex].push_back(dict[oldCode][0]);
+		used[dicIndex] = true;
+		WriteResult(dict[dicIndex]);
+		dicIndex++;
+		oldCode = code;
+	}*/
+	return true;
+}
 CompressionLZW::~CompressionLZW()
 {
 	if (dict != nullptr)
@@ -31,48 +88,50 @@ void CompressionLZW::Decode(byte* _input, int _startPos, int _readLength, byte* 
 	ResetPara();
 	int Code;
 	int OldCode = 256;
+	bool Continue = true;
 	while ((Code = GetNextCode()) != EoiCode)
 	{
-		if (Code == ClearCode)
-		{
-			InitializeTable();
-			Code = GetNextCode();
-			if (Code == EoiCode)
-			{
-				break;
-			}
-			WriteResult(dict[Code]);
-		}
-		else
-		{
-			if (IsInDic(Code))
-			{
-				WriteResult(dict[Code]);
-				//vector<byte> newCode = dict[OldCode];
-				//newCode.push_back(dict[Code][0]);
-				//×ÖµäÀ©³ä
-				//dict[dicIndex++].assign(newCode.begin(),newCode.end());
-				dict[dicIndex] = dict[OldCode];
-				dict[dicIndex].push_back(dict[Code][0]);
-				used[dicIndex] = true;
-				dicIndex++;
-				OldCode = Code;
-			}
-			else
-			{
-				/*vector<byte> newCode = dict[OldCode];
-				newCode.push_back(dict[OldCode][0]);
-				WriteResult(newCode);
-				dict[dicIndex++] = newCode;
-				OldCode = Code;*/
-				dict[dicIndex] = dict[OldCode];
-				dict[dicIndex].push_back(dict[OldCode][0]);
-				used[dicIndex] = true;
-				WriteResult(dict[dicIndex]);
-				dicIndex++;
-				OldCode = Code;
-			}
-		}
+		Continue = (this->*IsEnd[Code == ClearCode])(Code, OldCode);
+		//if (Code == ClearCode)
+		//{
+		//	InitializeTable();
+		//	Code = GetNextCode();
+		//	if (Code == EoiCode)
+		//	{
+		//		break;
+		//	}
+		//	WriteResult(dict[Code]);
+		//}
+		//else
+		//{
+		//	if (IsInDic(Code))
+		//	{
+		//		WriteResult(dict[Code]);
+		//		//vector<byte> newCode = dict[OldCode];
+		//		//newCode.push_back(dict[Code][0]);
+		//		//×ÖµäÀ©³ä
+		//		//dict[dicIndex++].assign(newCode.begin(),newCode.end());
+		//		dict[dicIndex] = dict[OldCode];
+		//		dict[dicIndex].push_back(dict[Code][0]);
+		//		used[dicIndex] = true;
+		//		dicIndex++;
+		//		OldCode = Code;
+		//	}
+		//	else
+		//	{
+		//		/*vector<byte> newCode = dict[OldCode];
+		//		newCode.push_back(dict[OldCode][0]);
+		//		WriteResult(newCode);
+		//		dict[dicIndex++] = newCode;
+		//		OldCode = Code;*/
+		//		dict[dicIndex] = dict[OldCode];
+		//		dict[dicIndex].push_back(dict[OldCode][0]);
+		//		used[dicIndex] = true;
+		//		WriteResult(dict[dicIndex]);
+		//		dicIndex++;
+		//		OldCode = Code;
+		//	}
+		//}
 		OldCode = Code;
 	}
 }

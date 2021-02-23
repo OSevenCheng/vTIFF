@@ -34,7 +34,15 @@ private:
 	void InitializeTable();
 	void WriteResult(std::vector<byte> _str);
 	bool IsInDic(int code);
+	bool End(int& code, int & oldCode);
+	bool NotEnd(int& code, int& oldCode);
+	bool (CompressionLZW::*IsEnd[2])(int& code, int& oldCode);
+	
+	void InDic(int& code, int& oldCode);
+	void NotInDic(int& code, int& oldCode);
+	void (CompressionLZW::* CodeInDic[2])(int& code, int& oldCode);
 };
+
 //struct ByteNode
 //{
 //	ByteNode(byte _d) :data(_d),pNext(nullptr) {}

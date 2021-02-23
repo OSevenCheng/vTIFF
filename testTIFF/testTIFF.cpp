@@ -35,8 +35,8 @@ int main()
 	//获取某一层的某个像素的数据。
 	//for (int x = 0; x < 1440; x++)
 	//{
-	float* color = tiff->GetPixel(1, 123);
-	cout << color[0]*255 << "	" << color[1] * 255 << "	" << color[2] * 255 << endl;
+	byte* color = (byte*)tiff->GetPixel(1, 123);
+	cout << color[0] << "	" << color[1] << "	" << color[2] << endl;
 	//cout << color[0] << "	" << color[1] << "	" << color[2] << "	" << color[3] << endl;
 	//}
 

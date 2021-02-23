@@ -72,10 +72,10 @@ bool vTIFF::ReadFile(std::string path)
 
 byte* vTIFF::GetLayer(int i=0)
 {
-    p_IFDs[i]->DecodeStrips();
+    p_IFDs[i]->DecodeImage();
     return p_IFDs[i]->GetImageData();
 }
-float* vTIFF::GetPixel(int x, int y, int layer)
+void* vTIFF::GetPixel(int x, int y, int layer)
 {
     return p_IFDs[layer]->GetPixel(x, y);
 }

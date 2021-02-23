@@ -38,6 +38,36 @@ int vIFD::Decode(int Pos)
 		DecodeDE(n);
 		n += 12;
 	}
+	ChannelCount = BitsPerSample.size();
+	if (ChannelCount == 0)
+	{
+		//错误
+		return 0;
+	}
+	BytesPerSample = BitsPerSample[0]/8;
+	int mo = BitsPerSample[0] % 8;
+	if (BytesPerSample == 0 || mo != 0)
+	{
+		//不支持 通道宽度不为8bits的整数倍
+		return 0;
+	}
+	bool isSame = true;
+	if (ChannelCount > 1)
+	{
+		for (int i = 1; i < ChannelCount; i++)
+			isSame = isSame && (BitsPerSample[i] == BitsPerSample[i - 1]);
+	}
+	if (!isSame)
+	{
+		//不支持 各通道不一致的情况
+		return 0;
+	}
+	if(BytesPerSample)
+	if (SampleFormat.size() == 0)
+	{
+		SampleFormat.push_back(1);//默认为1
+	}
+	
 	/*也可以之后获取指定层的时候解码
 	//已获得每条扫描线位置，大小，压缩方式和数据类型，接下来进行解码
 	DecodeStrips();
@@ -107,17 +137,41 @@ void vIFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 	default: break;
 	}
 }
-template<class T>
-void DealPredictor(byte* _data, int _width, int _length, int channel)
+void vIFD::DecodeImage()
 {
-	T* sData = reinterpret_cast<T*>(_data);
-	for (int j = 0; j < _length; j++)
+	int BitsCount = BitsPerSample[0];
+	switch (BitsCount)//不管有无符号，都按有符号处理
 	{
-		int before = j * _width * 3;
-		for (int ch = 0; ch < channel; ch++)
+	case 8://byte
+		DecodeStrips<char>();
+		break;
+	case 16://short
+		DecodeStrips<short>();
+		break;
+	case 32:
+		if (SampleFormat[0] == 3)//float
+		{
+			DecodeStrips<float>();
+		}
+		else//int
+		{
+			DecodeStrips<int>();
+		}
+	case 64:
+		DecodeStrips<double>();
+	}
+}
+template<class T>
+void vIFD::DealPredictor()
+{
+	T* sData = reinterpret_cast<T*>(imageData);
+	for (int j = 0; j < ImageLength; j++)
+	{
+		int before = j * ImageWidth * 3;
+		for (int ch = 0; ch < BitsPerSample.size(); ch++)
 		{
 			char last = 0;
-			for (int i = before + ch; i < before + ch + _width * 3; i += 3)
+			for (int i = before + ch; i < before + ch + ImageWidth * 3; i += 3)
 			{
 				sData[i] += last;
 				last = sData[i];
@@ -125,55 +179,89 @@ void DealPredictor(byte* _data, int _width, int _length, int channel)
 		}
 	}
 }
+
+template<class T>
 void vIFD::DecodeStrips()
 {
-		int pStrip = 0;
-		int size = 0;
-		byteCountPerStripe = ImageWidth * RowsPerStrip * BitsPerSample.size()*BitsPerSample[0]/8;//解码后的宽度
-		imageData =new byte[StripCount* byteCountPerStripe];
-		if (Compression == 1)//No compression
+	int pStrip = 0;
+	int size = 0;
+	byteCountPerStripe = ImageWidth * RowsPerStrip * ChannelCount * BitsPerSample[0]/8;//解码后的宽度
+	imageData = new byte[StripCount* byteCountPerStripe];
+	if (Compression == 1)//No compression
+	{
+		for (int i = 0; i < StripCount; i++)
 		{
-			for (int i = 0; i < StripCount; i++)
-			{
-				pStrip = StripOffsets[i];
-				size = StripByteCounts[i];
-				imageData[i * byteCountPerStripe] = p_Data[pStrip];
-				memcpy(&imageData[i * byteCountPerStripe], &p_Data[pStrip], size);
-			}
+			pStrip = StripOffsets[i];
+			size = StripByteCounts[i];
+			//imageData[i * byteCountPerStripe] = p_Data[pStrip];
+			memcpy(&imageData[i * byteCountPerStripe], &p_Data[pStrip], size);
 		}
-		else if (Compression == 5)//LZW compression
+	}
+	else if (Compression == 5)//LZW compression
+	{
+		//Timer time("LZW Decode Time");
+		CompressionLZW* lzw = new CompressionLZW();
+		for (int i = 0; i < StripCount; i++)
 		{
-			//Timer time("LZW Decode Time");
-			CompressionLZW* lzw = new CompressionLZW();
-			for (int i = 0; i < StripCount; i++)
-			{
-				pStrip = StripOffsets[i];
-				size = StripByteCounts[i];
-				//imageData[i] = new byte[byteCountPerStripe];
-				lzw->Decode(p_Data,pStrip,size, &imageData[i*byteCountPerStripe]);
-				
-			}
-			delete lzw;
+			pStrip = StripOffsets[i];
+			size = StripByteCounts[i];
 
-			if (Predictor == 2)
-			{
-				if (BitsPerSample[0] == 8)//unsigned byte
-				{
-					DealPredictor<char>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
-				}
-				else if (BitsPerSample[0] == 16)//unsigned short
-				{
-					DealPredictor<short>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
-				}
-				else if (BitsPerSample[0] == 32)//unsigned int
-				{
-					DealPredictor<int>(imageData, ImageWidth, ImageLength, BitsPerSample.size());
-				}
-			}
+			lzw->Decode(p_Data,pStrip,size, &imageData[i*byteCountPerStripe]);
+				
 		}
+		delete lzw;
+		if (Predictor == 2)
+		{
+			DealPredictor<T>();
+		}
+	}
 		
 }
 
+void* vIFD::GetPixel(int x, int y)
+{
+	int f = SampleFormat[0];
+	int b = BitsPerSample[0] / 8;
+	int c = BitsPerSample.size();
+	void* color = nullptr;
+	auto func_Char = [](byte* data,int x,int y, int c,int w) {
+		char* sData = reinterpret_cast<char*>(data);
+		return (void*)&sData[x + y * w * c];
+	};
+	auto func_Short = [](byte* data, int x, int y, int c, int w) {
+		short* sData = reinterpret_cast<short*>(data);
+		return (void*)&sData[x + y * w * c];
+	};
+	auto func_Int = [](byte* data, int x, int y, int c, int w) {
+		int* sData = reinterpret_cast<int*>(data);
+		return (void*)&sData[x + y * w * c];
+	};
+	void* (*func_ptr[3])(byte * data, int x, int y ,int c, int w)
+		= { func_Char, func_Short, func_Int };
+	return func_ptr[b - 1](imageData, x, y, c, ImageWidth);
+}
+//float* vIFD::GetPixel(int x, int y)
+//{
+//	float* color = nullptr;
+//	if (GetFormat() == vFormat::VT_FLOAT && GetPass() == 4)
+//	{
+//		byte* pStripY = &imageData[y * byteCountPerStripe];
+//		float R = GetFloat(pStripY, x * PixelBytes);
+//		float G = GetFloat(pStripY, x * PixelBytes + 4);
+//		float B = GetFloat(pStripY, x * PixelBytes + 8);
+//		float A = GetFloat(pStripY, x * PixelBytes + 12);
+//		color = new float[4]{ R,G,B,A };
+//	}
+//	else if (GetFormat() == vFormat::VT_UNSIGNED_BYTE && GetPass() == 3)
+//	{
+//		byte* pStripY = &imageData[y * byteCountPerStripe];
+//		float R = (float)pGetInt(pStripY, x * PixelBytes, 1) / 255.0;
+//		float G = (float)pGetInt(pStripY, x * PixelBytes + 1, 1) / 255.0;
+//		float B = (float)pGetInt(pStripY, x * PixelBytes + 2, 1) / 255.0;
+//		color = new float[3]{ R,G,B };
+//	}
+//	return color;
+//}
 void vIFD::PrintInfo()
 {
 	/*std::cout << "ImageWidth: " << ImageWidth << std::endl;
@@ -216,28 +304,7 @@ float vIFD::GetFloat(byte* b, int startPos)
 	
 	return *reinterpret_cast<float*>(byteTemp);
 }
-float* vIFD::GetPixel(int x, int y)
-{
-	float* color =nullptr;
-	if (GetFormat() == vFormat::VT_FLOAT && GetPass() == 4)
-	{
-		byte* pStripY = &imageData[y *byteCountPerStripe];
-		float R = GetFloat(pStripY, x * PixelBytes);
-		float G = GetFloat(pStripY, x * PixelBytes+4);
-		float B = GetFloat(pStripY, x * PixelBytes+8);
-		float A = GetFloat(pStripY, x * PixelBytes+12);
-		color = new float[4]{ R,G,B,A };
-	}
-	else if (GetFormat() == vFormat::VT_UNSIGNED_BYTE && GetPass() == 3)
-	{
-		byte* pStripY = &imageData[y * byteCountPerStripe];
-		float R = (float)pGetInt(pStripY, x * PixelBytes, 1) / 255.0;
-		float G = (float)pGetInt(pStripY, x * PixelBytes + 1, 1) / 255.0;
-		float B = (float)pGetInt(pStripY, x * PixelBytes + 2, 1) / 255.0;
-		color = new float[3]{ R,G,B };
-	}
-	return color;
-}
+
 byte* vIFD::GetPixelByte(int x, int y)
 {
 	byte* pStripY = &imageData[y* byteCountPerStripe];
