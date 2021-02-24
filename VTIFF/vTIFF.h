@@ -45,6 +45,10 @@ public:
 	int Pass() { 
 		return p_IFDs.empty() ? 0 : p_IFDs[0]->GetPass();
 	}
+	int Orientation()
+	{
+		return p_IFDs.empty() ? 0 : p_IFDs[0]->GetOrientation();
+	}
 	vFormat Format()
 	{
 		return p_IFDs.empty() ? vFormat::VT_UNDEFINED : p_IFDs[0]->GetFormat();

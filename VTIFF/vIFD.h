@@ -29,6 +29,7 @@ class vIFD
 	/// </summary>
 	std::vector<int> StripOffsets;//For each strip, the byte offset of that strip
 
+	int Orientation = 1;//default is i: 
    /// <summary>
    ///The number of rows in each strip (except possibly the last strip.)
    ///For example, if ImageLength is 24, and RowsPerStrip is 10, then there are 3
@@ -78,6 +79,7 @@ public:
 	int GetImageWidth() { return ImageWidth; }
 	int GetImageLength() { return ImageLength; }
 	int GetPass() { return BitsPerSample.size(); }
+	int GetOrientation() { return Orientation; }
 	vFormat GetFormat();
 	bool hasDecode = false;
 	void DecodeImage();

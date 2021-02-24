@@ -110,7 +110,8 @@ void vIFD::GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata)
 		PhotometricInterpretation = GetInt(pdata, typesize); break;
 	case 273://StripOffsets
 		GetIntArray(pdata, typesize, Count, StripOffsets); StripCount = Count; break;
-	case 274: break;//Orientation
+	case 274: //Orientation
+		Orientation = GetInt(pdata, typesize);break;
 	case 277: break;//SamplesPerPixel
 	case 278://RowsPerStrip
 		RowsPerStrip = GetInt(pdata, typesize); break;
@@ -169,7 +170,7 @@ void vIFD::DecodeImage()
 template<class T>
 void vIFD::DealPredictor()
 {
-	T* sData = reinterpret_cast<T*>(imageData);
+	T* sData = (T*)(imageData);
 	for (int j = 0; j < ImageLength; j++)
 	{
 		int before = j * ImageWidth * 3;
@@ -192,14 +193,28 @@ void vIFD::DecodeStrips()
 	int size = 0;
 	byteCountPerStripe = ImageWidth * RowsPerStrip * ChannelCount * BitsPerSample[0]/8;//解码后的宽度
 	imageData = new byte[StripCount* byteCountPerStripe];
+	int endi = StripCount - 1;
+	auto orientation1= [](int i, int endi) { return endi - i; };
+	auto orientation4 = [](int i, int endi) { return i; };
+	int (*outputIndex)(int i, int endi);
+	
+	if (Orientation <= 2)//目前只考虑1和4两种情况
+	{
+		outputIndex = orientation1;
+	}
+	else
+	{
+		outputIndex = orientation4;
+	}
 	if (Compression == 1)//No compression
 	{
+		
 		for (int i = 0; i < StripCount; i++)
 		{
 			pStrip = StripOffsets[i];
 			size = StripByteCounts[i];
 			//imageData[i * byteCountPerStripe] = p_Data[pStrip];
-			memcpy(&imageData[i * byteCountPerStripe], &p_Data[pStrip], size);
+			memcpy(&imageData[outputIndex(i, endi) * byteCountPerStripe], &p_Data[pStrip], size);
 		}
 	}
 	else if (Compression == 5)//LZW compression
@@ -211,8 +226,7 @@ void vIFD::DecodeStrips()
 			pStrip = StripOffsets[i];
 			size = StripByteCounts[i];
 
-			lzw->Decode(p_Data,pStrip,size, &imageData[i*byteCountPerStripe]);
-				
+			lzw->Decode(p_Data,pStrip,size, &imageData[outputIndex(i,endi) * byteCountPerStripe]);
 		}
 		delete lzw;
 		if (Predictor == 2)
@@ -230,15 +244,15 @@ void* vIFD::GetPixel(int x, int y)
 	int c = BitsPerSample.size();
 	void* color = nullptr;
 	auto func_Char = [](byte* data,int x,int y, int c,int w) {
-		char* sData = reinterpret_cast<char*>(data);
+		char* sData = (char*)(data);
 		return (void*)&sData[x + y * w * c];
 	};
 	auto func_Short = [](byte* data, int x, int y, int c, int w) {
-		short* sData = reinterpret_cast<short*>(data);
+		short* sData = (short*)(data);
 		return (void*)&sData[x + y * w * c];
 	};
 	auto func_Int = [](byte* data, int x, int y, int c, int w) {
-		int* sData = reinterpret_cast<int*>(data);
+		int* sData = (int*)(data);
 		return (void*)&sData[x + y * w * c];
 	};
 	void* (*func_ptr[3])(byte * data, int x, int y ,int c, int w)
@@ -307,7 +321,7 @@ float vIFD::GetFloat(byte* b, int startPos)
 	else
 	    byteTemp = new byte[4]{ b[startPos + 3],b[startPos + 2],b[startPos + 1],b[startPos] };
 	
-	return *reinterpret_cast<float*>(byteTemp);
+	return *(float*)(byteTemp);
 }
 
 byte* vIFD::GetPixelByte(int x, int y)

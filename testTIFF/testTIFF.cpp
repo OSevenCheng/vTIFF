@@ -31,7 +31,7 @@ int main()
 	cout << tiff->Layer() << endl;
 	cout << tiff->Pass() << endl;
 	cout << tiff->Format() << endl;
-
+	cout << "Orientation: "<<tiff->Orientation() << endl;
 	//获取某一层的某个像素的数据。
 	//for (int x = 0; x < 1440; x++)
 	//{
