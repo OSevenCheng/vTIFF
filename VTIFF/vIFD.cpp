@@ -157,9 +157,14 @@ void vIFD::DecodeImage()
 		{
 			DecodeStrips<int>();
 		}
+		break;
 	case 64:
 		DecodeStrips<double>();
+		break;
+	default:
+		break;
 	}
+	hasDecode = true;
 }
 template<class T>
 void vIFD::DealPredictor()

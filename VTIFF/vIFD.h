@@ -62,6 +62,8 @@ class vIFD
 	
 	void GetDEValue(int TagIndex, int TypeIndex, int Count, int pdata);
 	int (*pGetInt)(byte* pd, int startPos, int Length);
+
+	
 public:
 	vIFD(byte* p_data, bool byteorder, int(*fun)(byte*, int, int));
 	~vIFD();
@@ -77,7 +79,7 @@ public:
 	int GetImageLength() { return ImageLength; }
 	int GetPass() { return BitsPerSample.size(); }
 	vFormat GetFormat();
-
+	bool hasDecode = false;
 	void DecodeImage();
 private:
 	template<class T>

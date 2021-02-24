@@ -4,14 +4,14 @@
 #include <iostream>
 using namespace std;
 
-void vTIFF::Load(string path)
+bool vTIFF::Load(string path)
 {
     pGetInt[1] = GetIntII;
     pGetInt[0] = GetIntMM;
 
     if (!ReadFile(path))
     {
-        return;
+        return false;
     }
     int pIFD = DecodeIFH();
     while (pIFD != 0)
@@ -21,6 +21,7 @@ void vTIFF::Load(string path)
         //p_ifd->PrintInfo();
         p_IFDs.push_back(p_ifd);
     }
+    return true;
 }
 void vTIFF::Unload()//只是把原始数据释放//不再需要解码数据（GetLayer）后即可释放掉了
 {
@@ -72,7 +73,8 @@ bool vTIFF::ReadFile(std::string path)
 
 byte* vTIFF::GetLayer(int i=0)
 {
-    p_IFDs[i]->DecodeImage();
+    if(!p_IFDs[i]->hasDecode)
+        p_IFDs[i]->DecodeImage();
     return p_IFDs[i]->GetImageData();
 }
 void* vTIFF::GetPixel(int x, int y, int layer)

@@ -29,7 +29,7 @@ public:
 		}
 		Unload();
 	}
-	void Load(std::string path);
+	bool Load(std::string path);
 	void Unload();
 	byte* GetLayer(int i);
 	void* GetPixel(int x, int y, int layer=0);

@@ -21,10 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{ff6dd65d-23bb-457b-b81e-350a02222b4a}</ProjectGuid>
-    <RootNamespace>vTIFF</RootNamespace>
+    <ProjectGuid>{d62f6ad8-c77f-40e1-9cc9-d13a1bf7275c}</ProjectGuid>
+    <RootNamespace>vTIFFGL</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>VTIFF</ProjectName>
+    <ProjectName>VTIFF_GL</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -79,14 +79,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>VTIFF_GL_64d</TargetName>
     <OutDir>../Lib</OutDir>
-    <TargetExt>.lib</TargetExt>
-    <TargetName>VTIFF_64d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>../Lib</OutDir>
-    <TargetName>VTIFF_64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -122,14 +119,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\OpenGL;..\VTIFF;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib>
-      <OutputFile>$(OutDir)\VTIFF_64d.lib</OutputFile>
-    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -139,6 +134,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\OpenGL;..\VTIFF;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,16 +144,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CompressionLZW.h" />
-    <ClInclude Include="vIFD.h" />
-    <ClInclude Include="vTIFF.h" />
-    <ClInclude Include="Utils.h" />
+    <ClCompile Include="vTIFF_GL.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CompressionLZW.cpp" />
-    <ClCompile Include="vIFD.cpp" />
-    <ClCompile Include="vTIFF.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClInclude Include="vTIFF_GL.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
