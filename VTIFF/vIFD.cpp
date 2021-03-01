@@ -168,16 +168,16 @@ void vIFD::DecodeImage()
 	hasDecode = true;
 }
 template<class T>
-void vIFD::DealPredictor()
+void vIFD::DealPredictor()//RGB
 {
 	T* sData = (T*)(imageData);
 	for (int j = 0; j < ImageLength; j++)
 	{
-		int before = j * ImageWidth * 3;
-		for (int ch = 0; ch < BitsPerSample.size(); ch++)
+		int before = j * ImageWidth * ChannelCount;
+		for (int ch = 0; ch < ChannelCount; ch++)
 		{
 			char last = 0;
-			for (int i = before + ch; i < before + ch + ImageWidth * 3; i += 3)
+			for (int i = before + ch; i < before + ch + ImageWidth * ChannelCount; i += ChannelCount)
 			{
 				sData[i] += last;
 				last = sData[i];

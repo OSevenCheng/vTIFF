@@ -137,7 +137,7 @@ void InitScene()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	vTIFF_GL* img = new vTIFF_GL();
-	img->LoadFile("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\screenshot.tiff");
+	img->LoadFile("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
 	int w = img->Wid();
 	int h = img->Hig();
 	unsigned char* data = (unsigned char*)img->GetData();
