@@ -9,14 +9,18 @@ bool vTIFF::Load(string path)
     pGetInt[1] = GetIntII;
     pGetInt[0] = GetIntMM;
 
+    
     if (!ReadFile(path))
     {
         return false;
     }
+    
+
     int pIFD = DecodeIFH();
     while (pIFD != 0)
     {
 		vIFD* p_ifd = new vIFD(p_data,ByteOrder, pGetInt[ByteOrder]);
+        
         pIFD = p_ifd->Decode(pIFD);
         //p_ifd->PrintInfo();
         p_IFDs.push_back(p_ifd);

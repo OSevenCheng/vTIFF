@@ -239,7 +239,7 @@ void vIFD::DecodeStrips()
 
 void* vIFD::GetPixel(int x, int y)
 {
-	int f = SampleFormat[0];
+	//int f = SampleFormat[0];
 	int b = BitsPerSample[0] / 8;
 	int c = BitsPerSample.size();
 	void* color = nullptr;
@@ -255,8 +255,8 @@ void* vIFD::GetPixel(int x, int y)
 		int* sData = (int*)(data);
 		return (void*)&sData[x + y * w * c];
 	};
-	void* (*func_ptr[3])(byte * data, int x, int y ,int c, int w)
-		= { func_Char, func_Short, func_Int };
+	void* (*func_ptr[4])(byte * data, int x, int y ,int c, int w)
+		= { func_Char, func_Short, 0 , func_Int };
 	return func_ptr[b - 1](imageData, x, y, c, ImageWidth);
 }
 //float* vIFD::GetPixel(int x, int y)

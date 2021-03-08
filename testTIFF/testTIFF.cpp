@@ -13,8 +13,8 @@ int main()
 	Timer time("Total time");
 
 	vTIFF* tiff = new vTIFF();
-	tiff->Load("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\screenshot.tiff");
-
+	//tiff->Load("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\screenshot.tiff");
+	tiff->Load("D:\\Projects\\vTIFF\\hycom.tif");
 	//vTIFF* tiff = new vTIFF("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
 	
 	//获取第0页的数据。返回二维字节数组

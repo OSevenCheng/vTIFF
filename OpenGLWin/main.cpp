@@ -30,9 +30,11 @@ float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-
+vTIFF_GL* img;
+int ilayer = 0;
 unsigned int VBO, VAO, EBO;
 unsigned int texture1;
+unsigned int* textures;
 unsigned int shaderProgram;
 const char* vertexShaderSource = 
 "#version 430 core\n"
@@ -54,6 +56,29 @@ const char* fragShaderSource =
 //"   fColor = vec4(TexCoord,0.0,1.0);\n"
 "   fColor = texture(ourTexture,TexCoord);\n"
 "}\0";
+
+void LoadTIFFLayer(int i)
+{
+	if (textures[i] == 0)
+	{
+		glGenTextures(1, &textures[i]);
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		int w = img->Wid();
+		int h = img->Hig();
+		unsigned char* data = (unsigned char*)img->GetData(i);
+		glTexImage2D(GL_TEXTURE_2D, 0, img->InFormat(), w, h, 0, img->ExFormat(), img->ExType(), data);
+		delete data;
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+	}
+}
 void InitScene()
 {
 	unsigned int vertexShader;
@@ -128,25 +153,54 @@ void InitScene()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	vTIFF_GL* img = new vTIFF_GL();
-	img->LoadFile("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
+	img = new vTIFF_GL();
+	//img->LoadFile("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
+	img->LoadFile("D:\\Projects\\vTIFF\\hycom.tif");
 	int w = img->Wid();
 	int h = img->Hig();
-	unsigned char* data = (unsigned char*)img->GetData();
-	glTexImage2D(GL_TEXTURE_2D, 0, img->InFormat(), w, h, 0, img->ExFormat(), img->ExType(), data);
+	textures = new unsigned int[img->Lay()]();
+	LoadTIFFLayer(ilayer);
+	
 }
+
 GLvoid MoveCamera();
 
+bool leftFlip = true;
+bool rightFlip = true;
+void Flip()
+{
+	if (keys[VK_LEFT] && leftFlip)
+	{
+		ilayer--;
+		if (ilayer < 0)
+			ilayer = 0;
+		else
+			LoadTIFFLayer(ilayer);
+		leftFlip = false;
+	}
+	if (!keys[VK_LEFT])
+	{
+		leftFlip = true;
+	}
+	if (keys[VK_RIGHT] && rightFlip)
+	{
+		ilayer++;
+		if (ilayer > img->Lay())
+			ilayer = img->Lay();
+		else
+			LoadTIFFLayer(ilayer);
+		rightFlip = false;
+	}
+	if (!keys[VK_RIGHT])
+	{
+		rightFlip = true;
+	}
+}
 void DrawScene()
 {
+	Flip();
 	MoveCamera();
 
 	glClearColor(2.0 / 256.0, 6.0 / 256.0, 18.0 / 256.0, 1.0);
@@ -155,7 +209,7 @@ void DrawScene()
 	
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture1); 
+	//glBindTexture(GL_TEXTURE_2D, texture1); 
 	
 	glUseProgram(shaderProgram);
 

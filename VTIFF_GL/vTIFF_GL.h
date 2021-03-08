@@ -15,9 +15,10 @@ public:
 	GLint InFormat() { return inFormat; }
 	GLsizei Wid() { return Width(); }
 	GLsizei Hig() { return Height(); }
+	GLsizei Lay() { return Layer(); }
 	GLenum ExFormat() { return exFormat; }
 	GLenum ExType() { return exType; }
-	void* GetData() { return GetLayer(0); }
+	void* GetData(int i) { return GetLayer(i); }
 	vTIFF_GL();
 	vTIFF_GL(std::string path);
 	~vTIFF_GL();
