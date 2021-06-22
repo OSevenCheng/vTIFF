@@ -54,7 +54,9 @@ const char* fragShaderSource =
 "void main()\n"
 "{\n"
 //"   fColor = vec4(TexCoord,0.0,1.0);\n"
-"   fColor = texture(ourTexture,TexCoord);\n"
+"   float x = texture(ourTexture, TexCoord).x*2.0;\n"
+"   fColor = vec4(x, x, x ,1.0);\n"
+//"   fColor = texture(ourTexture, TexCoord);\n"
 "}\0";
 
 void LoadTIFFLayer(int i)
@@ -122,10 +124,10 @@ void InitScene()
 	glDeleteShader(fragmentShader);
 
 	float vertices[] = {
-		0.5f,  0.5f, 0.0f,   1.0f,1.0f,//右上
-		0.5f, -0.5f, 0.0f,   1.0f,0.0f,//右下
-		-0.5f,-0.5f, 0.0f,   0.0f,0.0f,//左下
-		-0.5f ,0.5f, 0.0f,   0.0f,1.0f //左上
+		0.9f,  0.9f, 0.0f,   1.0f,1.0f,//右上
+		0.9f, -0.9f, 0.0f,   1.0f,0.0f,//右下
+		-0.9f,-0.9f, 0.0f,   0.0f,0.0f,//左下
+		-0.9f ,0.9f, 0.0f,   0.0f,1.0f //左上
 	};
 	unsigned int indices[] = {
 		0,1,3,
@@ -157,7 +159,8 @@ void InitScene()
 
 	img = new vTIFF_GL();
 	//img->LoadFile("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
-	img->LoadFile("D:\\Projects\\vTIFF\\hycom.tif");
+	//img->LoadFile("D:\\Projects\\vTIFF\\hycom.tif");
+	img->LoadFile("D:\\Projects\\vTIFF\\2020_07_21_index_blue.tif");
 	int w = img->Wid();
 	int h = img->Hig();
 	textures = new unsigned int[img->Lay()]();
@@ -234,6 +237,7 @@ GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize Th
 
 GLvoid MoveCamera()
 {
+
 }
 
 bool OnSpecialKeyDown(int key, int x, int y)  //按键按下

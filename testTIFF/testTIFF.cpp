@@ -14,7 +14,8 @@ int main()
 
 	vTIFF* tiff = new vTIFF();
 	//tiff->Load("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\screenshot.tiff");
-	tiff->Load("D:\\Projects\\vTIFF\\hycom.tif");
+	//tiff->Load("D:\\Projects\\vTIFF\\hycom.tif");
+	tiff->Load("D:\\Projects\\vTIFF\\2020_07_21_index_blue.tif");
 	//vTIFF* tiff = new vTIFF("D:\\Projects\\Unity\\Streamlines\\Assets\\Streamlines\\Data\\1.tif");
 	
 	//获取第0页的数据。返回二维字节数组

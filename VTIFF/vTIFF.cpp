@@ -39,9 +39,9 @@ void vTIFF::Unload()//只是把原始数据释放//不再需要解码数据（GetLayer）后即可释放
 int vTIFF::DecodeIFH()
 {
     //string byteOrder = p_data[0];// +"" + (char)p_data[1];
-    if (p_data[0] == 'I')
+    if (p_data[0] == 'I')//little endian
         ByteOrder = true;
-    else if (p_data[0] == 'M')
+    else if (p_data[0] == 'M')//big endian
         ByteOrder = false;
     else
         cout<<"The order value is not II or MM."<<endl;

@@ -26,7 +26,16 @@ void vTIFF_GL::SetFormat()
 	vFormat f = Format();
 	if (channelNum == 1)
 	{
-
+		switch (f)
+		{
+		case vFormat::VT_FLOAT:
+			inFormat = GL_R32F;//ÓÐ·ûºÅ¹éÒ»»¯
+			exFormat = GL_RED;
+			exType = GL_FLOAT;
+			break;
+		default:
+			break;
+		}
 	}
 	else if (channelNum == 3)
 	{

@@ -62,7 +62,7 @@ int vIFD::Decode(int Pos)
 		//不支持 各通道不一致的情况
 		return 0;
 	}
-	if(BytesPerSample)
+	//if(BytesPerSample)
 	if (SampleFormat.size() == 0)
 	{
 		SampleFormat.push_back(1);//默认为1
@@ -185,6 +185,105 @@ void vIFD::DealPredictor()//RGB
 		}
 	}
 }
+#define REPEAT4(n, op)		\
+    switch (n) {		\
+    default: { \
+        size_t i; for (i = n-4; i > 0; i--) { op; } }  /*-fallthrough*/  \
+    case 4:  op; /*-fallthrough*/ \
+    case 3:  op; /*-fallthrough*/ \
+    case 2:  op; /*-fallthrough*/ \
+    case 1:  op; /*-fallthrough*/ \
+    case 0:  ;			\
+    }
+void vIFD::DealPredictor(uint8_t* cp0, size_t cc)//Float
+{
+	size_t stride = 1;
+	uint32_t bps = BytesPerSample;
+	size_t wc = cc / bps;
+	size_t count = cc;//一条扫描线的byte数
+	uint8_t* cp = (uint8_t*)cp0;
+	uint8_t* tmp;
+
+	tmp = (uint8_t*)malloc(cc);
+	if (!tmp)
+		return;
+	uint8_t t1 = cp0[0];
+	uint8_t t2 = cp0[ImageWidth];
+	uint8_t t3 = cp0[ImageWidth*2];
+	uint8_t t4 = cp0[ImageWidth *3];
+	while (count > stride) 
+	{
+		//REPEAT4(stride, cp[stride] =(unsigned char)((cp[stride] + cp[0]) & 0xff); cp++)
+			
+		//REPEAT4(n, op)		
+		switch (stride) {
+
+		default: 
+		{
+			size_t i; 
+			for (i = stride - 4; i > 0; i--)
+			{ 
+				unsigned char x = (unsigned char)((cp[stride] + cp[0]) & 0xff);
+				cp[stride] = x;
+				cp++; 
+			} 
+		}  /*-fallthrough*/
+		case 4:  cp[stride] = (unsigned char)((cp[stride] + cp[0]) & 0xff); cp++; /*-fallthrough*/
+		case 3:  cp[stride] = (unsigned char)((cp[stride] + cp[0]) & 0xff); cp++; /*-fallthrough*/
+		case 2:  cp[stride] = (unsigned char)((cp[stride] + cp[0]) & 0xff); cp++; /*-fallthrough*/
+		case 1:  cp[stride] = (unsigned char)((cp[stride] + cp[0]) & 0xff); cp++; /*-fallthrough*/
+		case 0:;
+		}
+
+		count -= stride;
+	}
+
+	memcpy(tmp, cp0, cc);
+	cp = (uint8_t*)cp0;
+	for (count = 0; count < wc; count++) {
+		uint32_t byteNum;
+		for (byteNum = 0; byteNum < bps; byteNum++) 
+		{
+			if (ByteOrder)// "II"
+			{
+				int di = bps * count + byteNum;
+				int si = (bps - byteNum - 1) * wc + count;
+				uint8_t t = tmp[si];
+				cp[di] = t;
+			}
+			else// "MM"  WORDS_BIGENDIAN
+				cp[bps * count + byteNum] = tmp[byteNum * wc + count];
+		}
+		float* fTemp = reinterpret_cast<float*>(cp0);
+		float zz = *fTemp;
+	}
+	free(tmp);
+	return;
+
+
+	//uint8_t * tmp = (uint8_t*)malloc(cc);
+	//uint8_t R[] =  { 0,0,0,0 };
+	//uint8_t LastR[] = { cp0[ 0 ], cp0[1 * ImageWidth], cp0[2 * ImageWidth], cp0[3 * ImageWidth] };
+	//for (size_t x = 1; x < ImageWidth * RowsPerStrip; x++)
+	//{
+	//    for (int c = 0; c < 4; c++)
+	//    {
+	//        R[c] = (uint8_t)( (cp0[x + c * ImageWidth] + LastR[c] ) & 0xff);
+	//        LastR[c] = R[c];
+	//        //R[c] = Dval[x + c * ImageWidth];
+
+	//    }
+	//	uint8_t byteTemp[4] = { R[3], R[2], R[1], R[0] };
+	//	tmp[x * 4 + 0] = R[3];
+	//	tmp[x * 4 + 1] = R[2];
+	//	tmp[x * 4 + 2] = R[1];
+	//	tmp[x * 4 + 3] = R[0];
+	//		float* fTemp = reinterpret_cast<float*>(byteTemp);
+	//		float zz = *fTemp;
+	//}
+	//memcpy(cp0, tmp, cc);
+	//free(tmp);
+}
 
 template<class T>
 void vIFD::DecodeStrips()
@@ -225,14 +324,22 @@ void vIFD::DecodeStrips()
 		{
 			pStrip = StripOffsets[i];
 			size = StripByteCounts[i];
-
-			lzw->Decode(p_Data,pStrip,size, &imageData[outputIndex(i,endi) * byteCountPerStripe]);
+			byte* outputpos = &imageData[outputIndex(i, endi) * byteCountPerStripe];
+			lzw->Decode(p_Data,pStrip,size, outputpos);
+			DealPredictor(outputpos, byteCountPerStripe);
+			float* x = reinterpret_cast<float*>(outputpos);
+			float* y = x+1;
+			float* z = x + 2;
 		}
 		delete lzw;
-		if (Predictor == 2)
+		/*if (Predictor == 2)
 		{
 			DealPredictor<T>();
 		}
+		else if (Predictor == 3)
+		{
+			DealPredictor();
+		}*/
 	}
 		
 }

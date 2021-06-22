@@ -89,6 +89,8 @@ private:
 
 	template<class T>
 	void DealPredictor();
+
+	void DealPredictor(uint8_t* cp0, size_t cc);
 };
 
 enum vFormat
